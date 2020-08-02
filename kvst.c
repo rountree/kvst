@@ -19,7 +19,6 @@ static uint32_t rank, size;
 
 int mod_main (flux_t *h, int argc, char **argv)
 {
-    flux_watcher_t* timer_watch_p;
     flux_future_t *f;
 
     // Get rank via flux_get_rank() and print results to stderr.
