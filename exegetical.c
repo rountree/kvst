@@ -15,20 +15,46 @@
 #include <flux/core.h>
 
 #define MY_MOD_NAME "exegetical"
-
+static const int NO_FLAGS = 0;
+static const char const * DEFAULT_NAMESPACE = NULL;
 const char default_service_name[] = MY_MOD_NAME;
 static uint32_t rank, size;
-static const int NO_FLAGS = 0;
 #define HELLO flux_log(h, LOG_CRIT, "%s:%d rank %" PRIu32 " size %" PRIu32 ".\n", __FILE__, __LINE__, rank, size)
 
 void timer_handler( flux_reactor_t *r, flux_watcher_t *w, int revents, void* arg ){
 
+	static int initialized = 0, count = 0;
+	int rc;
 	flux_t *h = (flux_t*)arg;
 	flux_get_rank(h, &rank);
 	flux_get_size(h, &size);
 
-	flux_log(h, LOG_CRIT, "%s:%d rank %" PRIu32 " size %" PRIu32 ".  Timer!\n", __FILE__, __LINE__, rank, size);
+	if( !initialized ){
+		flux_log(h, LOG_CRIT, "%s:%d rank %" PRIu32 " size %" PRIu32 ".  Timer!\n", __FILE__, __LINE__, rank, size);
+		initialized = 1;
+	}
+	count++;
+
+        // Allocate the kvs transaction
+        flux_kvs_txn_t *kvs_txn = flux_kvs_txn_create();
+        assert( NULL != kvs_txn );
+
+        // Create an entry from the kvs
+        rc = flux_kvs_txn_put( kvs_txn, NO_FLAGS, "mykey", "myvalue" );
+        assert( -1 != rc );
+
+        // Commit the key+value.
+        flux_future_t *kvs_future = flux_kvs_commit( h, DEFAULT_NAMESPACE, NO_FLAGS, kvs_txn );
+        assert( NULL != kvs_future );
+
+        // Wait for confirmation
+        rc = flux_future_wait_for( kvs_future, 10.0 );
+        assert( rc != -1 );
+
+        // Destroy our future.
+        flux_future_destroy( kvs_future );
 }
+
 
 static void foo_cb (flux_t *h, flux_msg_handler_t *mh, const flux_msg_t *msg, void *arg){
 
