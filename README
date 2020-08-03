@@ -1,6 +1,4 @@
-This project builds out from the echo gist for flux provided
-by Mark Grondona.  If you're not running flux on LLNL's 
-quartz cluster, this will probably be of limited use.
+An example module for event subscription and logging.
 
 Intended order of operations:
 

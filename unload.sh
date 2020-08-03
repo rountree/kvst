@@ -1,4 +1,4 @@
 #!/bin/bash
 
-flux exec -r all flux module unload kvst
+flux exec -r all flux module unload exegetical
 
